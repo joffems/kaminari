@@ -29,10 +29,11 @@ module Kaminari
         args = [column_name]
         args << options if ActiveRecord::VERSION::STRING < '4.1.0'
 
-        # .group returns an OrderdHash that responds to #count
-        c = c.count(*args)
-        if c.is_a?(Hash) || c.is_a?(ActiveSupport::OrderedHash)
-          c.count
+        # A workaround if I have multiple nested GROUP BYs
+        # In this case, the hash count is not indicative of the returned results
+        # and we need to use length
+        if c.to_sql =~ /GROUP BY/i
+          c.length
         else
           c.respond_to?(:count) ? c.count(*args) : c
         end
